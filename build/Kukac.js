@@ -4,6 +4,52 @@
 
   global = this;
 
+  this.Model = (function() {
+    function Model() {
+      this._hash = new Object;
+      this._events = {};
+    }
+
+    Model.prototype.set = function(key, value) {
+      this._hash[key] = value;
+      return this.notifyObserversForEvent(key, this);
+    };
+
+    Model.prototype.get = function(key) {
+      return this._hash[key];
+    };
+
+    Model.prototype.addObserver = function(observer, event) {
+      var observers;
+      observers = this._events[event];
+      if (!observers) {
+        observers = [];
+      }
+      observers.push(observer);
+      return this._events[event] = observers;
+    };
+
+    Model.prototype.notifyObserversForEvent = function(event) {
+      var observer, observers, _i, _len, _results;
+      observers = this._events[event];
+      _results = [];
+      for (_i = 0, _len = observers.length; _i < _len; _i++) {
+        observer = observers[_i];
+        _results.push((function(observer) {
+          if (observer.observe instanceof Function) {
+            return observer.observe();
+          }
+        })(observer));
+      }
+      return _results;
+    };
+
+    Model.prototype.observe = function(event, observed) {};
+
+    return Model;
+
+  })();
+
   this.Kukac = (function() {
     function Kukac() {
       var head, self;

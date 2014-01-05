@@ -4,32 +4,86 @@
 
   global = this;
 
+  this.Hash = (function() {
+    function Hash() {
+      this._values = [];
+      this._keys = [];
+    }
+
+    Hash.prototype.set = function(key, value) {
+      var KeyExist, index;
+      if (value) {
+        this._values.push(value);
+        return this._keys.push(key);
+      } else {
+        index = this._keys.indexOf(key);
+        KeyExist = index >= 0 ? true : false;
+        if (KeyExist) {
+          this._values.splice(index, 1);
+          return this._keys.splice(index, 1);
+        } else {
+          return console.warn("No value for '%s' key exist!", key);
+        }
+      }
+    };
+
+    Hash.prototype.getValue = function(key) {
+      var i;
+      i = this._keys.indexOf(key);
+      if (i < 0) {
+        return null;
+      } else {
+        return this._values[i];
+      }
+    };
+
+    Hash.prototype.getKey = function(value) {
+      var i;
+      i = this._values.indexOf(value);
+      if (i < 0) {
+        return null;
+      } else {
+        return this._keys[i];
+      }
+    };
+
+    Hash.prototype.getKeys = function() {
+      return this._keys;
+    };
+
+    Hash.prototype.getValues = function() {
+      return this._values;
+    };
+
+    return Hash;
+
+  })();
+
   this.Controller = (function() {
     function Controller() {
       var self;
-      console.log("controller contruct");
       this.fps;
-      this.canvas;
-      this.objects = [];
       this.timer;
-      this.context;
       this.kukac;
+      this.viewForRing = new Hash;
       self = this;
-      document.addEventListener("DOMContentLoaded", function() {
+      window.addEventListener("load", function() {
         console.log("controller dom loaded", self);
         return self.didLoad();
+      });
+      window.addEventListener("unload", function() {
+        return self.didUnload();
       });
     }
 
     Controller.prototype.didLoad = function() {
-      var canvas, self;
-      console.log("conrtoller did load wooo");
+      var self;
       self = this;
-      self.fps = 3;
-      self.kukac = new Kukac;
-      self.objects.push(self.kukac);
-      canvas = document.getElementById("myCanvas");
-      self.ctx = canvas.getContext("2d");
+      self.view = document.getElementById("kukacdiv");
+      self.view.style.position = "relative";
+      self.fps = 6;
+      self.bounds = new Bounds(new Vector(0, 0), new Vector($(self.view).width(), $(self.view).height()));
+      self.reset();
       global.document.addEventListener("keydown", function(event) {
         switch (event.keyIdentifier) {
           case "Left":
@@ -42,46 +96,164 @@
             return self.kukac.direction = new Vector(0, 1);
         }
       });
-      return self.startAnimation();
+      return self.startGameloop();
     };
 
-    Controller.prototype.draw = function() {
-      var object, self, _i, _len, _ref, _results;
+    Controller.prototype.didUnload = function() {
+      var self;
+      console.log("unload");
       self = this;
-      self.ctx.clearRect(0, 0, self.ctx.canvas.width, self.ctx.canvas.height);
-      _ref = self.objects;
+      return self.stopGameloop();
+    };
+
+    Controller.prototype.gameloop = function() {
+      var dist, ring, self, _i, _len, _ref, _results;
+      self = this;
+      if (Math.random() < 0.0) {
+        self.kukac.grow();
+      }
+      self.kukac.move();
+      self.updateView();
+      /*   GAME OVER*/
+
+      if (!this.bounds.contains(self.kukac.position)) {
+        self.killKukac();
+      }
+      _ref = self.kukac.rings.slice(1);
       _results = [];
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        object = _ref[_i];
-        _results.push(object.draw(self.ctx));
+        ring = _ref[_i];
+        dist = ring.position.dist(self.kukac.position);
+        if (dist < self.kukac.width) {
+          _results.push(self.killKukac());
+        } else {
+          _results.push(void 0);
+        }
       }
       return _results;
     };
 
-    Controller.prototype.animation = function() {
-      var self;
+    Controller.prototype.updateView = function() {
+      var circles, newRings, oldRings, oldring, ring, self, _fn, _fn1, _fn2, _fn3, _fn4, _i, _j, _k, _l, _len, _len1, _len2, _len3, _len4, _len5, _m, _n, _ref, _ref1, _ref2, _ref3, _results;
+      console.time("updateView");
       self = this;
-      return self.kukac.move();
+      if (self.view instanceof CanvasView) {
+        circles = [];
+        _ref = self.kukac.rings;
+        _fn = function(ring) {
+          var circle;
+          circle = new Circle;
+          circle.position = ring.position;
+          circle.radius = ring.radius;
+          return circles.push(circle);
+        };
+        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+          ring = _ref[_i];
+          _fn(ring);
+        }
+        self.view.subviews = circles;
+        return self.view.draw();
+      } else if (self.view instanceof Element) {
+        self = this;
+        newRings = [];
+        _ref1 = self.kukac.rings;
+        _fn1 = function(ring) {
+          var RingHasAssociatedView;
+          RingHasAssociatedView = self.viewForRing.getValue(ring) ? true : false;
+          if (!RingHasAssociatedView) {
+            return newRings.push(ring);
+          }
+        };
+        for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
+          ring = _ref1[_j];
+          _fn1(ring);
+        }
+        _fn2 = function(ring) {
+          var circle;
+          circle = document.createElement("div");
+          $(circle).addClass('warmring');
+          circle.style.position = "absolute";
+          circle.style.width = ring.radius * 2 + "px";
+          circle.style.height = ring.radius * 2 + "px";
+          self.viewForRing.set(ring, circle);
+          return $(self.view).prepend(circle);
+        };
+        for (_k = 0, _len2 = newRings.length; _k < _len2; _k++) {
+          ring = newRings[_k];
+          _fn2(ring);
+        }
+        oldRings = [];
+        _ref2 = self.viewForRing.getKeys();
+        _fn3 = function(oldring) {
+          var ViewHasAssociatedRing;
+          ViewHasAssociatedRing = self.kukac.rings.indexOf(oldring) >= 0 ? true : false;
+          if (!ViewHasAssociatedRing) {
+            return oldRings.push(oldring);
+          }
+        };
+        for (_l = 0, _len3 = _ref2.length; _l < _len3; _l++) {
+          oldring = _ref2[_l];
+          _fn3(oldring);
+        }
+        _fn4 = function(oldring) {
+          var element;
+          element = self.viewForRing.getValue(oldring);
+          $(element).fadeOut({
+            duration: 500,
+            complete: function() {
+              return $(this).remove();
+            }
+          });
+          return self.viewForRing.set(oldring, void 0);
+        };
+        for (_m = 0, _len4 = oldRings.length; _m < _len4; _m++) {
+          oldring = oldRings[_m];
+          _fn4(oldring);
+        }
+        _ref3 = self.viewForRing.getKeys();
+        _results = [];
+        for (_n = 0, _len5 = _ref3.length; _n < _len5; _n++) {
+          ring = _ref3[_n];
+          _results.push((function(ring) {
+            var circle;
+            circle = self.viewForRing.getValue(ring);
+            circle.style.left = ring.position.x - ring.radius + "px";
+            return circle.style.top = ring.position.y - ring.radius + "px";
+          })(ring));
+        }
+        return _results;
+      }
     };
 
-    Controller.prototype.startAnimation = function() {
+    Controller.prototype.reset = function() {
+      var self;
+      self = this;
+      self.kukac = new Kukac;
+      self.kukac.setPosition(new Vector(50, 50));
+      self.kukac.direction = new Vector(1, 0);
+      return self.objects = [self.kukac];
+    };
+
+    Controller.prototype.killKukac = function() {
+      var self;
+      self = this;
+      self.reset();
+      return console.log("kill kukac");
+    };
+
+    Controller.prototype.startGameloop = function() {
       var self;
       self = this;
       return self.timer = setInterval(function() {
-        self.animation();
-        return self.draw();
+        return self.gameloop();
       }, 1000 / self.fps);
     };
 
-    Controller.prototype.stopAnimation = function() {
+    Controller.prototype.stopGameloop = function() {
       var self;
       self = this;
       return clearInterval(self.timer);
     };
-
-    +(function(a) {
-      return console.log("overload", a);
-    });
 
     return Controller;
 

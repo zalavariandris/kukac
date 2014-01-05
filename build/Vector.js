@@ -13,6 +13,32 @@
 
   global = this;
 
+  this.Bounds = (function() {
+    function Bounds(tl, br) {
+      var self;
+      self = this;
+      self.tl = tl;
+      self.br = br;
+    }
+
+    Bounds.prototype.contains = function(point) {
+      return point.x > this.tl.x && point.x < this.br.x && point.y < this.br.y && point.y > this.tl.y;
+    };
+
+    Bounds.prototype.getWidth = function() {
+      var width;
+      return width = this.br.x - this.tl.x;
+    };
+
+    Bounds.prototype.getHeight = function() {
+      var height;
+      return height = this.br.y - this.tl.y;
+    };
+
+    return Bounds;
+
+  })();
+
   this.Vector = (function() {
     /* Adds two vectors and returns the product.*/
 

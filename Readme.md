@@ -11,7 +11,10 @@ Working hours
 =============
 
 ### január 3.
-* 4 óra
++ 4 óra
 
 ### január 4.
-* f11-
++ f11-f5 = 6 óra
+
+###január 5.
++ 11-

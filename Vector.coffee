@@ -6,6 +6,25 @@
 
 ### 2D Vector ###
 global = @
+class @Bounds
+    constructor: (tl, br)->
+        self = this
+        self.tl = tl
+        self.br = br
+
+    contains: (point)->
+        point.x > this.tl.x and
+        point.x < this.br.x and
+        point.y < this.br.y and
+        point.y > this.tl.y
+
+    getWidth: ->
+        width = @br.x - @tl.x
+
+    getHeight: ->
+        height = @br.y - @tl.y
+        
+
 class @Vector
     
     ### Adds two vectors and returns the product. ###

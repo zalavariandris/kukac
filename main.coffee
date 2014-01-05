@@ -1,1 +1,3 @@
-@controller =  new Controller
+
+@app =  new Controller
+global = @

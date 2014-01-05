@@ -1,5 +1,35 @@
 
 global = @
+
+class @Model
+    constructor: ->
+        @_hash = new Object
+        @_events = {}
+
+    set: (key, value) ->
+        @_hash[ key ] = value
+        @notifyObserversForEvent key, this
+    get: (key) ->
+        @_hash[ key ]
+
+    #subscription
+    addObserver: (observer, event)->
+        observers = @_events[ event ]
+        unless observers then observers = []
+        observers.push observer
+        @_events[ event ] = observers
+
+    notifyObserversForEvent: (event)->
+        observers = @_events[event]
+        for observer in observers
+            do (observer)->
+                if observer.observe instanceof Function
+                    observer.observe()
+
+    observe: (event, observed)->
+
+
+
 class @Kukac
     constructor: ->
         self = this
@@ -11,6 +41,8 @@ class @Kukac
         head.radius = self.width / 2 * 1.2
         self.rings = [head]
         self.setPosition new Vector
+
+
 
     setPosition: (pos)->
         self = this
