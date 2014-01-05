@@ -5,29 +5,50 @@ class @Model
     constructor: ->
         @_hash = new Object
         @_events = {}
+        @__listeners = {}
 
     set: (key, value) ->
         @_hash[ key ] = value
-        @notifyObserversForEvent key, this
+        event = 
+            type: key
+            target: value
+        @__fire event
+        return value
     get: (key) ->
         @_hash[ key ]
 
+    addListener: (type, listener) ->
+        unless @__listeners[ type ] then @__listeners[ type ] = []
+        @__listeners[ type ].push listener
+
+    removeListener: (type) ->
+        @__listeners[ type ]?.length = 0
+
+    __fire: (event) ->
+        unless event.type then throw new Error "Event Object needs type"
+        unless event.target then event.target = this
+
+        for listener in @__listeners[event.type]
+            listener.call(this, event)
+
+
     #subscription
-    addObserver: (observer, event)->
-        observers = @_events[ event ]
-        unless observers then observers = []
-        observers.push observer
-        @_events[ event ] = observers
+    # addObserver: (observer, event)->
+    #     observers = @_events[ event ]
+    #     unless observers then observers = []
+    #     observers.push observer
+    #     @_events[ event ] = observers
 
-    notifyObserversForEvent: (event)->
-        observers = @_events[event]
-        for observer in observers
-            do (observer)->
-                if observer.observe instanceof Function
-                    observer.observe()
+    # notifyObserversForEvent: (event, observed)->
+    #     observers = @_events[event]
+    #     if observers?
+    #         for observer in observers
+    #             do (observer)->
+    #                 if observer.observe instanceof Function
+    #                     observer.observe(event, observed)
+    #         return observers.length
 
-    observe: (event, observed)->
-
+    # observe: (event, observed)->
 
 
 class @Kukac
@@ -41,8 +62,6 @@ class @Kukac
         head.radius = self.width / 2 * 1.2
         self.rings = [head]
         self.setPosition new Vector
-
-
 
     setPosition: (pos)->
         self = this

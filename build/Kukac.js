@@ -8,43 +8,52 @@
     function Model() {
       this._hash = new Object;
       this._events = {};
+      this.__listeners = {};
     }
 
     Model.prototype.set = function(key, value) {
+      var event;
       this._hash[key] = value;
-      return this.notifyObserversForEvent(key, this);
+      event = {
+        type: key,
+        target: value
+      };
+      this.__fire(event);
+      return value;
     };
 
     Model.prototype.get = function(key) {
       return this._hash[key];
     };
 
-    Model.prototype.addObserver = function(observer, event) {
-      var observers;
-      observers = this._events[event];
-      if (!observers) {
-        observers = [];
+    Model.prototype.addListener = function(type, listener) {
+      if (!this.__listeners[type]) {
+        this.__listeners[type] = [];
       }
-      observers.push(observer);
-      return this._events[event] = observers;
+      return this.__listeners[type].push(listener);
     };
 
-    Model.prototype.notifyObserversForEvent = function(event) {
-      var observer, observers, _i, _len, _results;
-      observers = this._events[event];
+    Model.prototype.removeListener = function(type) {
+      var _ref;
+      return (_ref = this.__listeners[type]) != null ? _ref.length = 0 : void 0;
+    };
+
+    Model.prototype.__fire = function(event) {
+      var listener, _i, _len, _ref, _results;
+      if (!event.type) {
+        throw new Error("Event Object needs type");
+      }
+      if (!event.target) {
+        event.target = this;
+      }
+      _ref = this.__listeners[event.type];
       _results = [];
-      for (_i = 0, _len = observers.length; _i < _len; _i++) {
-        observer = observers[_i];
-        _results.push((function(observer) {
-          if (observer.observe instanceof Function) {
-            return observer.observe();
-          }
-        })(observer));
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        listener = _ref[_i];
+        _results.push(listener.call(this, event));
       }
       return _results;
     };
-
-    Model.prototype.observe = function(event, observed) {};
 
     return Model;
 

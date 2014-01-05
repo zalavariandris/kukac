@@ -85,6 +85,10 @@
       self.bounds = new Bounds(new Vector(0, 0), new Vector($(self.view).width(), $(self.view).height()));
       self.reset();
       global.document.addEventListener("keydown", function(event) {
+        var _ref;
+        if ((_ref = event.keyIdentifier) === "Left" || _ref === "Right" || _ref === "Up" || _ref === "Down") {
+          event.preventDefault();
+        }
         switch (event.keyIdentifier) {
           case "Left":
             return self.kukac.direction = new Vector(-1, 0);

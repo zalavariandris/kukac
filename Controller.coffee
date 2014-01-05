@@ -1,8 +1,8 @@
 global = @
 class @Hash
     constructor: ->
-        this._values = []
-        this._keys = []
+        @_values = []
+        @_keys = []
     set: (key, value) ->
         if value
             this._values.push value
@@ -75,6 +75,9 @@ class @Controller
 
         #add keydown event
         global.document.addEventListener "keydown", (event)->
+            #prevent window scroll
+            event.preventDefault() if event.keyIdentifier in ["Left", "Right", "Up", "Down"]
+
             switch event.keyIdentifier
                 when "Left"  then self.kukac.direction = new Vector(-1, 0)
                 when "Right" then self.kukac.direction = new Vector( 1, 0)
@@ -106,7 +109,7 @@ class @Controller
         unless @bounds.contains self.kukac.position then self.killKukac()
 
         #if kukac hits itselfs
-        for ring in self.kukac.rings[1..]
+        for ring in self.kukac.rings[ 1.. ]
             dist = ring.position.dist self.kukac.position
             if dist < self.kukac.width then self.killKukac()
        
