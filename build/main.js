@@ -6,4 +6,6 @@
 
   global = this;
 
+  $("#kukacdiv").draggable();
+
 }).call(this);

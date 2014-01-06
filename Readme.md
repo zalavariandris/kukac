@@ -14,7 +14,11 @@ Working hours
 + 4 óra
 
 ### január 4.
-+ f11-f5 = 6 óra
++ f11am-f5pm = 6 óra
 
 ###január 5.
-+ 11-
++ 11am-f10pm
++ 11pm-
+
+### januær 5.
++ 11am

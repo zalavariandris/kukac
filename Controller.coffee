@@ -16,7 +16,6 @@ class @Hash
             else
                 console.warn "No value for '%s' key exist!", key
 
-
     getValue: (key) ->
         i = @_keys.indexOf key
         if i < 0 then return null
@@ -43,6 +42,7 @@ class @Controller
         this.fps
         #animation
         this.timer
+        this.paused
         
         #model
         this.kukac
@@ -67,7 +67,7 @@ class @Controller
         self.view.style.position = "relative"
 
         #set properties
-        self.fps = 6
+        self.fps = 4
         self.bounds = new Bounds(new Vector(0,0), new Vector($(self.view).width(), $(self.view).height()));
 
         #reset
@@ -76,13 +76,13 @@ class @Controller
         #add keydown event
         global.document.addEventListener "keydown", (event)->
             #prevent window scroll
-            event.preventDefault() if event.keyIdentifier in ["Left", "Right", "Up", "Down"]
-
+            event.preventDefault() if event.keyIdentifier in ["U+0020","Left", "Right", "Up", "Down"]
             switch event.keyIdentifier
-                when "Left"  then self.kukac.direction = new Vector(-1, 0)
-                when "Right" then self.kukac.direction = new Vector( 1, 0)
-                when "Up"    then self.kukac.direction = new Vector( 0,-1)
-                when "Down"  then self.kukac.direction = new Vector( 0, 1)
+                when "Left"  then self.kukac.set 'direction', new Vector(-1, 0)
+                when "Right" then self.kukac.set 'direction', new Vector( 1, 0)
+                when "Up"    then self.kukac.set 'direction', new Vector( 0,-1)
+                when "Down"  then self.kukac.set 'direction', new Vector( 0, 1)
+                when "U+0020" then self.togglePause()
 
         #animation
         self.startGameloop()
@@ -98,7 +98,7 @@ class @Controller
     gameloop: ->
         self = this
         #animate kukac
-        if Math.random()<0.0 then self.kukac.grow()
+        if Math.random()<0.2 then self.kukac.grow()
         self.kukac.move()
 
         #updateView
@@ -106,11 +106,11 @@ class @Controller
 
         ###   GAME OVER   ###
         #if kukac hits the wall
-        unless @bounds.contains self.kukac.position then self.killKukac()
+        unless @bounds.contains self.kukac.get "position" then self.killKukac()
 
         #if kukac hits itselfs
         for ring in self.kukac.rings[ 1.. ]
-            dist = ring.position.dist self.kukac.position
+            dist = ring.get('position').dist self.kukac.get 'position'
             if dist < self.kukac.width then self.killKukac()
        
 #======================================
@@ -124,7 +124,7 @@ class @Controller
             for ring in self.kukac.rings 
                 do (ring)->
                     circle = new Circle
-                    circle.position = ring.position
+                    circle.position = ring.get 'position'
                     circle.radius = ring.radius
                     circles.push circle
             self.view.subviews = circles
@@ -176,35 +176,26 @@ class @Controller
             for ring in self.viewForRing.getKeys()
                 do (ring) ->
                     circle = self.viewForRing.getValue(ring)
-                    circle.style.left = ring.position.x-ring.radius+"px"
-                    circle.style.top = ring.position.y-ring.radius+"px"
-
-            #console.timeEnd "updateView"
-
-
-            # $(self.view).empty()
-            # for ring in self.kukac.rings 
-            #     do (ring)->
-            #         circle = document.createElement "div"
-            #         circle.style.width = ring.radius*2+"px"
-            #         circle.style.height = ring.radius*2+"px"
-            #         circle.style.position = "absolute"
-            #         circle.style.left = ring.position.x-ring.radius+"px"
-            #         circle.style.top = ring.position.y-ring.radius+"px"
-            #         circle.style.borderRadius = ring.radius+"px"
-            #         circle.style.background = "red"
-            #         $(self.view).append(circle)
+                    ringPos = ring.get 'position'
+                    circle.style.left = ringPos.x-ring.radius+"px"
+                    circle.style.top = ringPos.y-ring.radius+"px"
 
 #======================================
 #         Manage Gameloop
 #--------------------------------------
-    
+    togglePause: ->
+        if @paused
+            @startGameloop()
+            @paused = false
+        else
+            @stopGameloop()
+            @paused = true
     reset: ->
         self = this
 
         self.kukac = new Kukac
-        self.kukac.setPosition new Vector(50, 50)
-        self.kukac.direction = new Vector(1, 0)
+        self.kukac.set "position", new Vector(50, 50)
+        self.kukac.set "direction",  new Vector(1, 0)
         self.objects = [self.kukac]   
 
     killKukac: ->

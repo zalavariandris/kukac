@@ -64,6 +64,7 @@
       var self;
       this.fps;
       this.timer;
+      this.paused;
       this.kukac;
       this.viewForRing = new Hash;
       self = this;
@@ -81,23 +82,25 @@
       self = this;
       self.view = document.getElementById("kukacdiv");
       self.view.style.position = "relative";
-      self.fps = 6;
+      self.fps = 4;
       self.bounds = new Bounds(new Vector(0, 0), new Vector($(self.view).width(), $(self.view).height()));
       self.reset();
       global.document.addEventListener("keydown", function(event) {
         var _ref;
-        if ((_ref = event.keyIdentifier) === "Left" || _ref === "Right" || _ref === "Up" || _ref === "Down") {
+        if ((_ref = event.keyIdentifier) === "U+0020" || _ref === "Left" || _ref === "Right" || _ref === "Up" || _ref === "Down") {
           event.preventDefault();
         }
         switch (event.keyIdentifier) {
           case "Left":
-            return self.kukac.direction = new Vector(-1, 0);
+            return self.kukac.set('direction', new Vector(-1, 0));
           case "Right":
-            return self.kukac.direction = new Vector(1, 0);
+            return self.kukac.set('direction', new Vector(1, 0));
           case "Up":
-            return self.kukac.direction = new Vector(0, -1);
+            return self.kukac.set('direction', new Vector(0, -1));
           case "Down":
-            return self.kukac.direction = new Vector(0, 1);
+            return self.kukac.set('direction', new Vector(0, 1));
+          case "U+0020":
+            return self.togglePause();
         }
       });
       return self.startGameloop();
@@ -113,21 +116,21 @@
     Controller.prototype.gameloop = function() {
       var dist, ring, self, _i, _len, _ref, _results;
       self = this;
-      if (Math.random() < 0.0) {
+      if (Math.random() < 0.2) {
         self.kukac.grow();
       }
       self.kukac.move();
       self.updateView();
       /*   GAME OVER*/
 
-      if (!this.bounds.contains(self.kukac.position)) {
+      if (!this.bounds.contains(self.kukac.get("position"))) {
         self.killKukac();
       }
       _ref = self.kukac.rings.slice(1);
       _results = [];
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         ring = _ref[_i];
-        dist = ring.position.dist(self.kukac.position);
+        dist = ring.get('position').dist(self.kukac.get('position'));
         if (dist < self.kukac.width) {
           _results.push(self.killKukac());
         } else {
@@ -147,7 +150,7 @@
         _fn = function(ring) {
           var circle;
           circle = new Circle;
-          circle.position = ring.position;
+          circle.position = ring.get('position');
           circle.radius = ring.radius;
           return circles.push(circle);
         };
@@ -219,13 +222,24 @@
         for (_n = 0, _len5 = _ref3.length; _n < _len5; _n++) {
           ring = _ref3[_n];
           _results.push((function(ring) {
-            var circle;
+            var circle, ringPos;
             circle = self.viewForRing.getValue(ring);
-            circle.style.left = ring.position.x - ring.radius + "px";
-            return circle.style.top = ring.position.y - ring.radius + "px";
+            ringPos = ring.get('position');
+            circle.style.left = ringPos.x - ring.radius + "px";
+            return circle.style.top = ringPos.y - ring.radius + "px";
           })(ring));
         }
         return _results;
+      }
+    };
+
+    Controller.prototype.togglePause = function() {
+      if (this.paused) {
+        this.startGameloop();
+        return this.paused = false;
+      } else {
+        this.stopGameloop();
+        return this.paused = true;
       }
     };
 
@@ -233,8 +247,8 @@
       var self;
       self = this;
       self.kukac = new Kukac;
-      self.kukac.setPosition(new Vector(50, 50));
-      self.kukac.direction = new Vector(1, 0);
+      self.kukac.set("position", new Vector(50, 50));
+      self.kukac.set("direction", new Vector(1, 0));
       return self.objects = [self.kukac];
     };
 
