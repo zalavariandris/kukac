@@ -5,7 +5,12 @@ Readme
 * to watch and compile
 coffee -o build/ -cw *.coffee
 
-
+To-do
+=====
++ hosszan induljon
++ gyorsuljon a kukac ha nyomom a gombot
++ idővel gyorsuljon a játék
++ controller
 
 Working hours
 =============
@@ -20,5 +25,6 @@ Working hours
 + 11am-f10pm
 + 11pm-
 
-### januær 5.
-+ 11am
+### januær 6.
++ 11am - f2pm
++ f3 - 
