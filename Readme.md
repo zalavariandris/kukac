@@ -11,6 +11,8 @@ To-do
 + gyorsuljon a kukac ha nyomom a gombot
 + idővel gyorsuljon a játék
 + controller
+    tutorial: http://www.html5rocks.com/en/tutorials/doodles/gamepad/
+    tester: http://www.html5rocks.com/en/tutorials/doodles/gamepad/gamepad-tester/tester.html
 
 Working hours
 =============
@@ -27,4 +29,7 @@ Working hours
 
 ### januær 6.
 + 11am - f2pm
-+ f3 - 
++ f3 - f10pm
+
+###januar 7.
++ dél - 

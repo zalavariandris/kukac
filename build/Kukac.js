@@ -11,7 +11,6 @@
 
     function Kukac() {
       this.head;
-      this.rings = [];
       Kukac.__super__.constructor.call(this);
     }
 
@@ -20,19 +19,25 @@
       self = this;
       self.set('speed', 20);
       self.set('width', 20);
+      self.set('rings', []);
       head = new Ring;
       head.set('radius', self.get('width') / 2 * 1.2);
-      self.rings.push(head);
-      self.addObserver('position', function(event) {
-        var i, _i, _ref;
-        if (self.rings.length > 1) {
-          for (i = _i = _ref = self.rings.length - 1; _i >= 1; i = _i += -1) {
-            self.rings[i].set('position', self.rings[i - 1].get('position').clone());
-          }
-        }
-        return self.rings[0].set('position', self.get('position').clone());
+      self.addTo('rings', head);
+      self.addObserver('position', function(key, change) {
+        return self.moveRings();
       });
       return self.set("position", new Vector);
+    };
+
+    Kukac.prototype.moveRings = function() {
+      var i, self, _i, _ref;
+      self = this;
+      if (self.get('rings').length > 1) {
+        for (i = _i = _ref = self.get('rings').length - 1; _i >= 1; i = _i += -1) {
+          self.get('rings')[i].set('position', self.get('rings')[i - 1].get('position').clone());
+        }
+      }
+      return self.get('rings')[0].set('position', self.get('position').clone());
     };
 
     Kukac.prototype.move = function() {
@@ -48,8 +53,15 @@
       self = this;
       newRing = new Ring;
       newRing.set('radius', self.get('width') / 2);
-      newRing.set('position', self.rings[self.rings.length - 1].get('position').clone());
-      return self.rings.push(newRing);
+      newRing.set('position', self.get('rings')[self.get('rings').length - 1].get('position').clone());
+      return self.addTo('rings', newRing);
+    };
+
+    Kukac.prototype.shrink = function() {
+      var last, self;
+      self = this;
+      last = _.last(self.get('rings'));
+      return self.removeFrom('rings', last);
     };
 
     return Kukac;

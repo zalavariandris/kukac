@@ -19,27 +19,41 @@ global = @
 class @Kukac extends Observable
     constructor: ->
         this.head
-        this.rings = []
         super()
 
     init: ->
         self = this
         self.set 'speed', 20
         self.set 'width', 20
+        self.set 'rings', []
 
         head = new Ring
         head.set 'radius', self.get('width')/ 2 * 1.2
-        self.rings.push head
+        self.addTo 'rings', head
 
-        self.addObserver 'position', (event)->
-            #move rings
-            if self.rings.length>1
-                for i in [self.rings.length-1..1] by -1
-                    self.rings[i].set 'position', self.rings[i-1].get('position').clone()
-
-            self.rings[0].set 'position', self.get('position').clone()
+        self.addObserver 'position', (key, change)->
+            self.moveRings()
+            
 
         self.set "position", new Vector
+
+    moveRings: ->
+        self = this
+        if self.get('rings').length>1
+            for i in [self.get('rings').length-1..1] by -1
+                # ringBefore = self.get('rings')[i-1]
+                # ring = self.get('rings')[i]
+                # posBefore = ringBefore.get 'position'
+                # ringPos = ring.get 'position'
+                # delta = ringPos.clone().sub posBefore.clone()
+                # delta.norm().scale(10)
+                # console.log delta
+                # if delta.x and delta.y
+                #     ring.set 'position', posBefore.clone().add(delta)
+                self.get('rings')[i].set 'position', self.get('rings')[i-1].get('position').clone()
+                
+
+        self.get('rings')[0].set 'position', self.get('position').clone()
 
     move: ->
         self = this
@@ -51,8 +65,13 @@ class @Kukac extends Observable
         self = this
         newRing = new Ring
         newRing.set 'radius', self.get('width')/2
-        newRing.set 'position', self.rings[self.rings.length-1].get('position').clone()
-        self.rings.push newRing
+        newRing.set 'position', self.get('rings')[self.get('rings').length-1].get('position').clone()
+        self.addTo 'rings', newRing
+
+    shrink:->
+        self = this
+        last = _.last self.get 'rings'
+        self.removeFrom 'rings', last
 
 class @Ring extends Observable
     init: ->

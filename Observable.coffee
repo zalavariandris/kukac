@@ -11,16 +11,16 @@ class @Observable
     init: ->
 
     set: (key, value) ->
-
-
         change =
+            kind: "SET",
             added: [value]
             removed: []
-            old: value,
-            new: @_hash[ key ]
+            old: @_hash[ key ],
+            new: value
 
-        @_hash[ key ] = value
-        this.__fire key, change
+        @_hash[ key ] =  value 
+
+        @__fire key, change
         return @_hash[ key ]
 
     get: (key) ->
@@ -33,6 +33,7 @@ class @Observable
         @_hash[key].push value
 
         change =
+            kind: "ADDITION",
             added: [value]
             removed: []
             old: oldArray,
@@ -49,6 +50,7 @@ class @Observable
         @_hash[ key ].splice index, 1
 
         change =
+            kind: "REMOVAL",
             added: [ ],
             removed: [ value ],
             old: oldArray,

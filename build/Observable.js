@@ -16,10 +16,11 @@
     Observable.prototype.set = function(key, value) {
       var change;
       change = {
+        kind: "SET",
         added: [value],
         removed: [],
-        old: value,
-        "new": this._hash[key]
+        old: this._hash[key],
+        "new": value
       };
       this._hash[key] = value;
       this.__fire(key, change);
@@ -35,6 +36,7 @@
       oldArray = this._hash[key].slice();
       this._hash[key].push(value);
       change = {
+        kind: "ADDITION",
         added: [value],
         removed: [],
         old: oldArray,
@@ -50,6 +52,7 @@
       index = this._hash[key].indexOf(value);
       this._hash[key].splice(index, 1);
       change = {
+        kind: "REMOVAL",
         added: [],
         removed: [value],
         old: oldArray,

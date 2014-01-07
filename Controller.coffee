@@ -21,7 +21,6 @@ class @Controller extends Observable
         #trigger didLoad when dom is loaded
         self = this
         window.addEventListener "load", ->
-            console.log "controller dom loaded", self
             self.didLoad()
 
         window.addEventListener "unload", ->
@@ -54,7 +53,25 @@ class @Controller extends Observable
                     self.removeViewForApple apple
 
         @addObserver 'kukac', (key, change)->
-            console.log 'kukac changed: ', change.new
+            #console.log 'kukac changed: ', change
+            change.old?.removeObservers 'rings'
+            if change.old
+                for ring in change.old.get 'rings'
+                    do ->
+                        self.removeViewForRing ring
+            if change.new
+                for ring in change.new.get 'rings'
+                    do (ring)->
+                        self.addViewForRing ring
+            change.new.addObserver 'rings', (key, change)->
+                #console.log 'rings changed:', change.kind 
+                for ring in change.added
+                    do (ring)->
+                        self.addViewForRing ring
+                for ring in change.removed
+                    do (ring)->
+                        self.removeViewForRing ring
+
 
 
         #set default values
@@ -64,21 +81,33 @@ class @Controller extends Observable
         #reset
         self.reset()
 
+        map = { 
+            13: 40, #Down
+            12: 38, #"Up"
+            14: 37, #"Left",
+            15: 39  #"Right"
+        }
         #add keydown event
-        global.document.addEventListener "keydown", (event)=>
-            #prevent window scroll
-            event.preventDefault() if event.keyIdentifier in ["U+0020","Left", "Right", "Up", "Down"]
-            switch event.keyIdentifier
-                when "Left"  then self.kukac.set 'direction', new Vector(-1, 0)
-                when "Right" then self.kukac.set 'direction', new Vector( 1, 0)
-                when "Up"    then self.kukac.set 'direction', new Vector( 0,-1)
-                when "Down"  then self.kukac.set 'direction', new Vector( 0, 1)
-                when "U+0020" then self.togglePause()
+        $(document).keydown (event)=>
+            #console.log 'app keydown: ', event.which
+            if @get 'paused'
+                @play()
+            else if event.which == 32
+                @pause()
+            newDir = new Vector
+            switch event.which
+                when 37 then newDir = new Vector(-1, 0) #Left 
+                when 39 then newDir = new Vector( 1, 0) #Right 
+                when 38 then newDir = new Vector( 0,-1) #Up 
+                when 40 then newDir = new Vector( 0, 1) #Down 
                 else
-                    if @get 'paused' then @startGameloop()
+                    newDir = @get('kukac').get('direction')
+
+            kukac = @get 'kukac'
+            kukac.set 'direction', newDir           
 
         #animation
-        @stopGameloop()
+        @pause()
         @showMessage('Press a button to start!')
 
         @dropAnApple()
@@ -113,29 +142,43 @@ class @Controller extends Observable
         #animate kukac
         #if Math.random()<0.2 then self.kukac.grow()
                   
-
-        self.kukac.move()
-
-        #updateView
-        self.updateView()
+        if self.get('kukac').get('rings').length < 4 then self.get('kukac').grow()
+        self.get('kukac').move()
 
         ###   GAME OVER   ###
         #if kukac hits the wall
-        unless @bounds.contains self.kukac.get "position" then @gameOver()
+        unless @bounds.contains self.get('kukac').get "position" then @gameOver()
 
         #if kukac hits itselfs
-        for ring in self.kukac.rings[ 1.. ]
-            dist = ring.get('position').dist self.kukac.get 'position'
-            if dist < self.kukac.get 'width' then @gameOver()
+        for ring in self.get('kukac').get('rings')[ 1.. ]
+            dist = ring.get('position').dist self.get('kukac').get 'position'
+            if dist < self.get('kukac').get 'width' then @gameOver()
 
         ###   EAT  ###
         for apple in self.get 'apples'
             do (apple)->
-                dst = apple.get('position').dist self.kukac.get('position')
-                if dst < apple.get('size')/2+self.kukac.get('width')/2
-                    self.kukac.grow()
+                dst = apple.get('position').dist self.get('kukac').get('position')
+                if dst < apple.get('size')/2+self.get('kukac').get('width')/2
+                    self.get('kukac').grow()
                     self.removeFrom 'apples', apple
                     self.dropAnApple()
+
+        
+
+    tick: ->
+        @gameloop()
+        unless @get 'paused'
+            setTimeout =>
+                @tick()
+            ,1000/@fps
+
+    play: ->
+        @set 'paused', false
+        @tick()
+        return
+
+    pause: ->
+        @set 'paused', true
        
 #======================================
 #            Update View
@@ -154,64 +197,46 @@ class @Controller extends Observable
         self.viewForApple.set(apple, circle)
         $(self.view).prepend circle
 
+        #bind model to view
+        apple.addObserver 'size', (key, change)->
+            console.log "apple changed", this
+            view = self.viewForApple.getValue( this )
+            view.style.width = change.new+"px"
+            view.style.height = change.new+"px"
+
     removeViewForApple: (apple)->
         self = this
         element = self.viewForApple.getValue apple
+
         $(element).remove()
         self.viewForApple.set(apple, undefined)
 
-    updateView: ->
+    addViewForRing: (ring) ->
         self = this
-        
-        ### RINGS ###
-        #get new rings added
-        newRings = []
-        for ring in self.kukac.rings
-            do (ring)->
-                RingHasAssociatedView = if self.viewForRing.getValue(ring) then true else false
-                #console.log "RingHasAssociatedView", RingHasAssociatedView
-                unless RingHasAssociatedView then newRings.push ring
+        circle = document.createElement "div"
+        $(circle).addClass('warmring')
+        circle.style.position = "absolute"
+        circle.style.width = ring.get('radius')*2+"px"
+        circle.style.height = ring.get('radius')*2+"px"
+        ringPos = ring.get 'position'
+        circle.style.left = ringPos.x-ring.get('radius')+"px"
+        circle.style.top = ringPos.y-ring.get('radius')+"px"
 
-        #get rings to remove
-        oldRings = []
-        for oldring in self.viewForRing.getKeys()
-            do (oldring)->
-                ViewHasAssociatedRing = if self.kukac.rings.indexOf(oldring) >= 0 then true else false
-                unless ViewHasAssociatedRing then oldRings.push oldring
+        self.viewForRing.set(ring, circle)
+        $(self.view).prepend circle
 
+        #bind model to view
+        ring.addObserver "position", (key, change)->
+            view = self.viewForRing.getValue(ring)
+            ringPos = ring.get 'position'
+            view.style.left = ringPos.x-ring.get('radius')+"px"
+            view.style.top = ringPos.y-ring.get('radius')+"px"
 
-        #create views for new rings
-        for ring in newRings
-            do (ring)->
-                circle = document.createElement "div"
-                $(circle).addClass('warmring')
-                circle.style.position = "absolute"
-                circle.style.width = ring.get('radius')*2+"px"
-                circle.style.height = ring.get('radius')*2+"px"
-
-                self.viewForRing.set(ring, circle)
-                $(self.view).prepend circle
-        
-        #remove views for oldRings
-        for oldring in oldRings
-            do (oldring)->
-                element = self.viewForRing.getValue oldring
-                $(element).fadeOut
-                    duration: 500
-                    complete:->
-                        $(this).remove()
-
-                self.viewForRing.set(oldring, undefined)
-        
-
-        #update views for current rings
-        for ring in self.kukac.rings
-            do (ring) ->
-                circle = self.viewForRing.getValue(ring)
-                ringPos = ring.get 'position'
-                circle.style.left = ringPos.x-ring.get('radius')+"px"
-                circle.style.top = ringPos.y-ring.get('radius')+"px"
-
+    removeViewForRing: (ring)->
+        self = this
+        element = self.viewForRing.getValue ring
+        $(element).remove()
+        self.viewForRing.set(ring, undefined)
 
     showMessage: (message)->
         $(self.popup).fadeIn()
@@ -224,39 +249,20 @@ class @Controller extends Observable
 #         Manage Gameloop
 #--------------------------------------
     
-    togglePause: ->
-        console.log 'toggle pause'
-        if @get 'paused'
-            @startGameloop()
-        else
-            @stopGameloop()
-    
     reset: ->
         self = this
-
-        self.kukac = new Kukac
-        self.kukac.set "position", new Vector(50, 50)
-        self.kukac.set "direction",  new Vector(1, 0)
-        self.objects = [self.kukac]   
+        kukac = new Kukac
+        kukac.set "direction",  new Vector(1, 0)
+        kukac.set "position", new Vector(90, 50)
+        self.set 'kukac', kukac
 
     killKukac: ->
         self = this
-        self.reset()
         console.log "kill kukac"
+        self.reset()
 
     gameOver: ->
         @killKukac()
-        @stopGameloop()
+        @pause()
         @showMessage "<h2>Game Over!</h2> <br> Press a button to restart!"
-
-    startGameloop: ->
-        self = this
-        self.timer = setInterval ->
-            self.gameloop()
-        ,1000/self.fps
-        @set 'paused', false
-
-    stopGameloop: ->
-        self = this
-        clearInterval self.timer
-        @set 'paused', true
+        
