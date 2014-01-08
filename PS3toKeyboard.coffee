@@ -32,7 +32,7 @@ class @PS3
         #store new gamepads in Static variable
         @gamepads = (_.clone(gamepad) for gamepad in gamepads)
 
-        console.log 'searching for gamepad'
+        #console.log 'searching for gamepad'
         unless status == "found"
             window.requestAnimationFrame =>
                 @searchForActiveGamepad(callback)
@@ -40,11 +40,12 @@ class @PS3
 
     @btnDifferenceInGamepads: (gamepad_A, gamepad_B)->
         difference = []
-        for btnIndex in [0..gamepad_A.buttons.length]
-            value_A = gamepad_A.buttons[ btnIndex ]
-            value_B = gamepad_B.buttons[ btnIndex ]
-            if value_A != value_B then difference.push btnIndex
-        return difference
+        if gamepad_A and gamepad_B
+            for btnIndex in [0..gamepad_A.buttons.length]
+                value_A = gamepad_A.buttons[ btnIndex ]
+                value_B = gamepad_B.buttons[ btnIndex ]
+                if value_A != value_B then difference.push btnIndex
+            return difference
 
     constructor: (gamepadindex)->
         this.gamepadindex = gamepadindex

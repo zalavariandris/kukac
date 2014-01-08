@@ -6,38 +6,46 @@ class @Controller extends Observable
 #-------------------------------------- 
     constructor: ->
         #properties
-        this.fps
+
         #animation
-        this.timer
-        this.paused
+        this._round = 0
+        this._gridstep = 20
         
-        this.view
-        this.pupup
+        this._view
+        this._pupupView
+
         #model
         this.viewForRing = new Hash;
+
         #this.apples = []
-        this.viewForApple = new Hash;
+        this._viewForApple = new Hash;
 
         #trigger didLoad when dom is loaded
-        self = this
-        window.addEventListener "load", ->
-            self.didLoad()
+        #self = this
+        window.addEventListener "load", =>
+            @didLoad()
 
-        window.addEventListener "unload", ->
-            self.didUnload()
+        window.addEventListener "unload", =>
+            @didUnload()
 
         super()
     init: ->
         @set 'apples', []
+
+
+
     didLoad: ->
         self = this
+        console.log "app did load"
 
         #setup views
-        self.view = document.getElementById "kukacdiv"
-        self.view.style.position = "relative"
+        self._view = document.getElementById "kukacdiv"
+        self._view.style.position = "relative"
+        self.bounds = new Bounds(new Vector(0,0), new Vector($(self._view).width(), $(self._view).height()));
 
-        self.popup = document.getElementById "pupup"
+        self._popupView = document.getElementById "popup"
 
+        ### observe itself ###
         @addObserver 'paused', (key, change)->
             if self.get 'paused'
                 self.showMessage 'press a button to continue...'
@@ -52,6 +60,7 @@ class @Controller extends Observable
                 do (apple)->
                     self.removeViewForApple apple
 
+        ### observe kukac ###
         @addObserver 'kukac', (key, change)->
             #console.log 'kukac changed: ', change
             change.old?.removeObservers 'rings'
@@ -73,11 +82,6 @@ class @Controller extends Observable
                         self.removeViewForRing ring
 
 
-
-        #set default values
-        self.fps = 6
-        self.bounds = new Bounds(new Vector(0,0), new Vector($(self.view).width(), $(self.view).height()));
-
         #reset
         self.reset()
 
@@ -87,6 +91,7 @@ class @Controller extends Observable
             14: 37, #"Left",
             15: 39  #"Right"
         }
+
         #add keydown event
         $(document).keydown (event)=>
             #console.log 'app keydown: ', event.which
@@ -114,36 +119,52 @@ class @Controller extends Observable
 
     didUnload: ->
         console.log "unload"
-        self = this
-        @stopGameloop()  
+
 
 #======================================
-#            Game Loop
-#-------------------------------------- 
+#         Manage Gameloop
+#--------------------------------------
+    
+    reset: ->
+        self = this
+        kukac = new Kukac
+        kukac.set "direction",  new Vector(1, 0)
+        kukac.set "position", new Vector(90, 50)
+        self.set 'kukac', kukac
+        self.timestep = 400
+
+    killKukac: ->
+        self = this
+        console.log "kill kukac"
+        self.reset()
+
+    gameOver: ->
+        @killKukac()
+        @pause()
+        @showMessage "<h2>Game Over!</h2> <br> Press a button to restart!"
+
     dropAnApple: ->
         self = this
         apple = new Apple
 
-        step = 20
-        width = self.bounds.getWidth()-step
-        height = self.bounds.getHeight()-step
+        width = self.bounds.getWidth() - self._gridstep
+        height = self.bounds.getHeight() - self._gridstep
         randomx = Math.random()
         randomy = Math.random()
         
 
         apple.set 'position', new Vector(
-                                    Math.round(randomx * width / step) / Math.round( width / step)*width+step/2,
-                                    Math.round(randomy * height / step) / Math.round( height / step)*height+step/2
+                                    Math.round(randomx * width / self._gridstep) / Math.round( width / self._gridstep)*width+self._gridstep/2,
+                                    Math.round(randomy * height / self._gridstep) / Math.round( height / self._gridstep)*height+self._gridstep/2
                                     )
         self.addTo 'apples', apple
+      
 
+#======================================
+#            Game Loop
+#-------------------------------------- 
     gameloop: ->
         self = this
-        #animate kukac
-        #if Math.random()<0.2 then self.kukac.grow()
-                  
-        if self.get('kukac').get('rings').length < 4 then self.get('kukac').grow()
-        self.get('kukac').move()
 
         ###   GAME OVER   ###
         #if kukac hits the wall
@@ -154,23 +175,45 @@ class @Controller extends Observable
             dist = ring.get('position').dist self.get('kukac').get 'position'
             if dist < self.get('kukac').get 'width' then @gameOver()
 
+        if self.get('kukac').get('rings').length <= 0 then @gameOver()
+
+        ###    ANIMATE    ###
+        # gro kukac at the first 4 round
+        @_round++
+        if @_round < 4 then @get('kukac').grow()
+
+        #grow kukac regularly
+        if Math.random()<0.16 then self.get('kukac').grow()
+
+        ### move kukac ###
+        kukac = @get 'kukac'
+        pos = kukac.get 'position'
+        pos.add kukac.get('direction').clone().scale self._gridstep
+        kukac.set 'position', pos
+
         ###   EAT  ###
         for apple in self.get 'apples'
             do (apple)->
                 dst = apple.get('position').dist self.get('kukac').get('position')
                 if dst < apple.get('size')/2+self.get('kukac').get('width')/2
-                    self.get('kukac').grow()
+                    #shrink kukac
+                    self.get('kukac').shrink()
+                    #remove the apple
                     self.removeFrom 'apples', apple
+                    #drop anotherone
                     self.dropAnApple()
+                    #increase timestep
+                    self.timestep *= 0.98
 
         
 
     tick: ->
         @gameloop()
         unless @get 'paused'
-            setTimeout =>
+            clearTimeout( @_timer )
+            @_timer = setTimeout =>
                 @tick()
-            ,1000/@fps
+            ,@timestep
 
     play: ->
         @set 'paused', false
@@ -181,7 +224,7 @@ class @Controller extends Observable
         @set 'paused', true
        
 #======================================
-#            Update View
+#            Update Views
 #--------------------------------------
     addViewForApple: (apple)->
         self = this
@@ -194,23 +237,24 @@ class @Controller extends Observable
         circle.style.width = apple.get('size')+"px"
         circle.style.height = apple.get('size')+"px"
 
-        self.viewForApple.set(apple, circle)
-        $(self.view).prepend circle
+        self._viewForApple.set(apple, circle)
+        $(self._view).prepend circle
 
         #bind model to view
         apple.addObserver 'size', (key, change)->
             console.log "apple changed", this
-            view = self.viewForApple.getValue( this )
+            view = self._viewForApple.getValue( this )
             view.style.width = change.new+"px"
             view.style.height = change.new+"px"
 
     removeViewForApple: (apple)->
         self = this
-        element = self.viewForApple.getValue apple
-
+        element = self._viewForApple.getValue apple
         $(element).remove()
-        self.viewForApple.set(apple, undefined)
 
+    getViewForApple: (apple)->
+        return @_viewForApple.getValue apple
+        
     addViewForRing: (ring) ->
         self = this
         circle = document.createElement "div"
@@ -223,7 +267,7 @@ class @Controller extends Observable
         circle.style.top = ringPos.y-ring.get('radius')+"px"
 
         self.viewForRing.set(ring, circle)
-        $(self.view).prepend circle
+        $(self._view).prepend circle
 
         #bind model to view
         ring.addObserver "position", (key, change)->
@@ -235,34 +279,19 @@ class @Controller extends Observable
     removeViewForRing: (ring)->
         self = this
         element = self.viewForRing.getValue ring
-        $(element).remove()
-        self.viewForRing.set(ring, undefined)
+
+        $(element).fadeOut(
+            200,
+            ->
+                $(element).remove()
+        )
 
     showMessage: (message)->
-        $(self.popup).fadeIn()
-        $(self.popup).html message
+        self = this
+        $(self._popupView).html message
+        $(self._popupView).fadeIn()
+        
 
     hideMessage: ->
-        $(self.popup).fadeOut()
-
-#======================================
-#         Manage Gameloop
-#--------------------------------------
-    
-    reset: ->
         self = this
-        kukac = new Kukac
-        kukac.set "direction",  new Vector(1, 0)
-        kukac.set "position", new Vector(90, 50)
-        self.set 'kukac', kukac
-
-    killKukac: ->
-        self = this
-        console.log "kill kukac"
-        self.reset()
-
-    gameOver: ->
-        @killKukac()
-        @pause()
-        @showMessage "<h2>Game Over!</h2> <br> Press a button to restart!"
-        
+        $(self._popupView).fadeOut()  

@@ -10,18 +10,16 @@
     __extends(Kukac, _super);
 
     function Kukac() {
-      this.head;
       Kukac.__super__.constructor.call(this);
     }
 
     Kukac.prototype.init = function() {
       var head, self;
       self = this;
-      self.set('speed', 20);
       self.set('width', 20);
       self.set('rings', []);
       head = new Ring;
-      head.set('radius', self.get('width') / 2 * 1.2);
+      head.set('radius', self.get('width') / 2 * 1.0);
       self.addTo('rings', head);
       self.addObserver('position', function(key, change) {
         return self.moveRings();
@@ -30,22 +28,17 @@
     };
 
     Kukac.prototype.moveRings = function() {
-      var i, self, _i, _ref;
+      var head, i, self, _i, _ref;
       self = this;
       if (self.get('rings').length > 1) {
         for (i = _i = _ref = self.get('rings').length - 1; _i >= 1; i = _i += -1) {
           self.get('rings')[i].set('position', self.get('rings')[i - 1].get('position').clone());
         }
       }
-      return self.get('rings')[0].set('position', self.get('position').clone());
-    };
-
-    Kukac.prototype.move = function() {
-      var pos, self;
-      self = this;
-      pos = self.get("position");
-      pos.add(self.get('direction').clone().scale(self.get('speed')));
-      return self.set("position", pos);
+      head = self.get('rings')[0];
+      if (head) {
+        return head.set('position', self.get('position').clone());
+      }
     };
 
     Kukac.prototype.grow = function() {

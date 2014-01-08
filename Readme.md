@@ -7,7 +7,7 @@ coffee -o build/ -cw *.coffee
 
 To-do
 =====
-+ hosszan induljon
++ hosszan induljon X
 + gyorsuljon a kukac ha nyomom a gombot
 + idővel gyorsuljon a játék
 + controller
@@ -24,12 +24,16 @@ Working hours
 + f11am-f5pm = 6 óra
 
 ###január 5.
-+ 11am-f10pm
-+ 11pm-
++ 11am-f10pm   9.5 óra
++ 11pm-12pm    1 óra
 
 ### januær 6.
-+ 11am - f2pm
-+ f3 - f10pm
++ 11am - f2pm  2.5 óra
++ f3 - f10pm   7óra
 
 ###januar 7.
-+ dél - 
++ dél - 7pm   7óra
+
+### január 8
+1 óra
+4pm -

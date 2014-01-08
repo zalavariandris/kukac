@@ -39,7 +39,6 @@
         }
         return _results;
       })();
-      console.log('searching for gamepad');
       if (status !== "found") {
         return window.requestAnimationFrame(function() {
           return _this.searchForActiveGamepad(callback);
@@ -50,14 +49,16 @@
     PS3.btnDifferenceInGamepads = function(gamepad_A, gamepad_B) {
       var btnIndex, difference, value_A, value_B, _i, _ref;
       difference = [];
-      for (btnIndex = _i = 0, _ref = gamepad_A.buttons.length; 0 <= _ref ? _i <= _ref : _i >= _ref; btnIndex = 0 <= _ref ? ++_i : --_i) {
-        value_A = gamepad_A.buttons[btnIndex];
-        value_B = gamepad_B.buttons[btnIndex];
-        if (value_A !== value_B) {
-          difference.push(btnIndex);
+      if (gamepad_A && gamepad_B) {
+        for (btnIndex = _i = 0, _ref = gamepad_A.buttons.length; 0 <= _ref ? _i <= _ref : _i >= _ref; btnIndex = 0 <= _ref ? ++_i : --_i) {
+          value_A = gamepad_A.buttons[btnIndex];
+          value_B = gamepad_B.buttons[btnIndex];
+          if (value_A !== value_B) {
+            difference.push(btnIndex);
+          }
         }
+        return difference;
       }
-      return difference;
     };
 
     function PS3(gamepadindex) {
