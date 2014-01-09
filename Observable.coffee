@@ -75,4 +75,9 @@ class @Observable
     removeObservers: (key) ->
         @__observers[ key ]?.length = 0
 
+
+
+    
+
+
     

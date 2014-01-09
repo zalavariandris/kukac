@@ -35,5 +35,8 @@ Working hours
 + dél - 7pm   7óra
 
 ### január 8
-1 óra
-4pm -
++ 1 óra
++ 4pm - f8pm
+
+### januar 9 
+   pm f3- 

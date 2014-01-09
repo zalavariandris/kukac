@@ -1,7 +1,5 @@
 
 global = @
-
-
 class @Kukac extends Observable
     constructor: ->
         super()
@@ -18,22 +16,12 @@ class @Kukac extends Observable
         self.addObserver 'position', (key, change)->
             self.moveRings()
             
-
         self.set "position", new Vector
 
     moveRings: ->
         self = this
         if self.get('rings').length>1
             for i in [self.get('rings').length-1..1] by -1
-                # ringBefore = self.get('rings')[i-1]
-                # ring = self.get('rings')[i]
-                # posBefore = ringBefore.get 'position'
-                # ringPos = ring.get 'position'
-                # delta = ringPos.clone().sub posBefore.clone()
-                # delta.norm().scale(10)
-                # console.log delta
-                # if delta.x and delta.y
-                #     ring.set 'position', posBefore.clone().add(delta)
                 self.get('rings')[i].set 'position', self.get('rings')[i-1].get('position').clone()
                 
         head = self.get('rings')[0]

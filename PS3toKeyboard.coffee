@@ -1,4 +1,4 @@
-
+ 
 unless navigator.webkitGetGamepads then alert "Gamepad is not supported..."
 
 gamepads = navigator.webkitGetGamepads()
@@ -11,7 +11,7 @@ class @PS3
     @searchForActiveGamepad: (callback)->
         status = "searching..."
 
-        #console.log 'searching for gamepads'
+        #console.log status
 
         ### detect active gamepad ###
 

@@ -15,7 +15,7 @@ class @Controller extends Observable
         this._pupupView
 
         #model
-        this.viewForRing = new Hash;
+        this._viewForRing = new Hash;
 
         #this.apples = []
         this._viewForApple = new Hash;
@@ -23,18 +23,17 @@ class @Controller extends Observable
         #trigger didLoad when dom is loaded
         #self = this
         window.addEventListener "load", =>
-            @didLoad()
+            @windowDidLoad()
 
         window.addEventListener "unload", =>
-            @didUnload()
+            @windowDidUnload()
 
         super()
+
     init: ->
         @set 'apples', []
 
-
-
-    didLoad: ->
+    windowDidLoad: ->
         self = this
         console.log "app did load"
 
@@ -117,7 +116,7 @@ class @Controller extends Observable
 
         @dropAnApple()
 
-    didUnload: ->
+    windowDidUnload: ->
         console.log "unload"
 
 
@@ -131,7 +130,7 @@ class @Controller extends Observable
         kukac.set "direction",  new Vector(1, 0)
         kukac.set "position", new Vector(90, 50)
         self.set 'kukac', kukac
-        self.timestep = 400
+        self.timestep = 300
 
     killKukac: ->
         self = this
@@ -166,17 +165,6 @@ class @Controller extends Observable
     gameloop: ->
         self = this
 
-        ###   GAME OVER   ###
-        #if kukac hits the wall
-        unless @bounds.contains self.get('kukac').get "position" then @gameOver()
-
-        #if kukac hits itselfs
-        for ring in self.get('kukac').get('rings')[ 1.. ]
-            dist = ring.get('position').dist self.get('kukac').get 'position'
-            if dist < self.get('kukac').get 'width' then @gameOver()
-
-        if self.get('kukac').get('rings').length <= 0 then @gameOver()
-
         ###    ANIMATE    ###
         # gro kukac at the first 4 round
         @_round++
@@ -203,9 +191,18 @@ class @Controller extends Observable
                     #drop anotherone
                     self.dropAnApple()
                     #increase timestep
-                    self.timestep *= 0.98
+                    self.timestep *= 0.95
 
-        
+        ###   GAME OVER   ###
+        #if kukac hits the wall
+        unless @bounds.contains self.get('kukac').get "position" then @gameOver()
+
+        #if kukac hits itselfs
+        for ring in self.get('kukac').get('rings')[ 1.. ]
+            dist = ring.get('position').dist self.get('kukac').get 'position'
+            if dist < self.get('kukac').get 'width' then @gameOver()
+
+        if self.get('kukac').get('rings').length <= 0 then @gameOver()
 
     tick: ->
         @gameloop()
@@ -242,8 +239,8 @@ class @Controller extends Observable
 
         #bind model to view
         apple.addObserver 'size', (key, change)->
-            console.log "apple changed", this
-            view = self._viewForApple.getValue( this )
+            apple = this
+            view = self._viewForApple.getValue( this ) 
             view.style.width = change.new+"px"
             view.style.height = change.new+"px"
 
@@ -251,9 +248,6 @@ class @Controller extends Observable
         self = this
         element = self._viewForApple.getValue apple
         $(element).remove()
-
-    getViewForApple: (apple)->
-        return @_viewForApple.getValue apple
         
     addViewForRing: (ring) ->
         self = this
@@ -266,19 +260,19 @@ class @Controller extends Observable
         circle.style.left = ringPos.x-ring.get('radius')+"px"
         circle.style.top = ringPos.y-ring.get('radius')+"px"
 
-        self.viewForRing.set(ring, circle)
+        self._viewForRing.set(ring, circle)
         $(self._view).prepend circle
 
         #bind model to view
         ring.addObserver "position", (key, change)->
-            view = self.viewForRing.getValue(ring)
+            view = self._viewForRing.getValue(ring)
             ringPos = ring.get 'position'
             view.style.left = ringPos.x-ring.get('radius')+"px"
             view.style.top = ringPos.y-ring.get('radius')+"px"
 
     removeViewForRing: (ring)->
         self = this
-        element = self.viewForRing.getValue ring
+        element = self._viewForRing.getValue ring
 
         $(element).fadeOut(
             200,
@@ -291,7 +285,6 @@ class @Controller extends Observable
         $(self._popupView).html message
         $(self._popupView).fadeIn()
         
-
     hideMessage: ->
         self = this
         $(self._popupView).fadeOut()  

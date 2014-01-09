@@ -15,13 +15,13 @@
       this._gridstep = 20;
       this._view;
       this._pupupView;
-      this.viewForRing = new Hash;
+      this._viewForRing = new Hash;
       this._viewForApple = new Hash;
       window.addEventListener("load", function() {
-        return _this.didLoad();
+        return _this.windowDidLoad();
       });
       window.addEventListener("unload", function() {
-        return _this.didUnload();
+        return _this.windowDidUnload();
       });
       Controller.__super__.constructor.call(this);
     }
@@ -30,7 +30,7 @@
       return this.set('apples', []);
     };
 
-    Controller.prototype.didLoad = function() {
+    Controller.prototype.windowDidLoad = function() {
       var map, self,
         _this = this;
       self = this;
@@ -155,7 +155,7 @@
       return this.dropAnApple();
     };
 
-    Controller.prototype.didUnload = function() {
+    Controller.prototype.windowDidUnload = function() {
       return console.log("unload");
     };
 
@@ -166,7 +166,7 @@
       kukac.set("direction", new Vector(1, 0));
       kukac.set("position", new Vector(90, 50));
       self.set('kukac', kukac);
-      return self.timestep = 400;
+      return self.timestep = 300;
     };
 
     Controller.prototype.killKukac = function() {
@@ -195,24 +195,8 @@
     };
 
     Controller.prototype.gameloop = function() {
-      var apple, dist, kukac, pos, ring, self, _i, _j, _len, _len1, _ref, _ref1, _results;
+      var apple, dist, kukac, pos, ring, self, _fn, _i, _j, _len, _len1, _ref, _ref1;
       self = this;
-      /*   GAME OVER*/
-
-      if (!this.bounds.contains(self.get('kukac').get("position"))) {
-        this.gameOver();
-      }
-      _ref = self.get('kukac').get('rings').slice(1);
-      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        ring = _ref[_i];
-        dist = ring.get('position').dist(self.get('kukac').get('position'));
-        if (dist < self.get('kukac').get('width')) {
-          this.gameOver();
-        }
-      }
-      if (self.get('kukac').get('rings').length <= 0) {
-        this.gameOver();
-      }
       /*    ANIMATE*/
 
       this._round++;
@@ -230,22 +214,37 @@
       kukac.set('position', pos);
       /*   EAT*/
 
-      _ref1 = self.get('apples');
-      _results = [];
-      for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
-        apple = _ref1[_j];
-        _results.push((function(apple) {
-          var dst;
-          dst = apple.get('position').dist(self.get('kukac').get('position'));
-          if (dst < apple.get('size') / 2 + self.get('kukac').get('width') / 2) {
-            self.get('kukac').shrink();
-            self.removeFrom('apples', apple);
-            self.dropAnApple();
-            return self.timestep *= 0.98;
-          }
-        })(apple));
+      _ref = self.get('apples');
+      _fn = function(apple) {
+        var dst;
+        dst = apple.get('position').dist(self.get('kukac').get('position'));
+        if (dst < apple.get('size') / 2 + self.get('kukac').get('width') / 2) {
+          self.get('kukac').shrink();
+          self.removeFrom('apples', apple);
+          self.dropAnApple();
+          return self.timestep *= 0.95;
+        }
+      };
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        apple = _ref[_i];
+        _fn(apple);
       }
-      return _results;
+      /*   GAME OVER*/
+
+      if (!this.bounds.contains(self.get('kukac').get("position"))) {
+        this.gameOver();
+      }
+      _ref1 = self.get('kukac').get('rings').slice(1);
+      for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
+        ring = _ref1[_j];
+        dist = ring.get('position').dist(self.get('kukac').get('position'));
+        if (dist < self.get('kukac').get('width')) {
+          this.gameOver();
+        }
+      }
+      if (self.get('kukac').get('rings').length <= 0) {
+        return this.gameOver();
+      }
     };
 
     Controller.prototype.tick = function() {
@@ -283,7 +282,7 @@
       $(self._view).prepend(circle);
       return apple.addObserver('size', function(key, change) {
         var view;
-        console.log("apple changed", this);
+        apple = this;
         view = self._viewForApple.getValue(this);
         view.style.width = change["new"] + "px";
         return view.style.height = change["new"] + "px";
@@ -297,10 +296,6 @@
       return $(element).remove();
     };
 
-    Controller.prototype.getViewForApple = function(apple) {
-      return this._viewForApple.getValue(apple);
-    };
-
     Controller.prototype.addViewForRing = function(ring) {
       var circle, ringPos, self;
       self = this;
@@ -312,11 +307,11 @@
       ringPos = ring.get('position');
       circle.style.left = ringPos.x - ring.get('radius') + "px";
       circle.style.top = ringPos.y - ring.get('radius') + "px";
-      self.viewForRing.set(ring, circle);
+      self._viewForRing.set(ring, circle);
       $(self._view).prepend(circle);
       return ring.addObserver("position", function(key, change) {
         var view;
-        view = self.viewForRing.getValue(ring);
+        view = self._viewForRing.getValue(ring);
         ringPos = ring.get('position');
         view.style.left = ringPos.x - ring.get('radius') + "px";
         return view.style.top = ringPos.y - ring.get('radius') + "px";
@@ -326,7 +321,7 @@
     Controller.prototype.removeViewForRing = function(ring) {
       var element, self;
       self = this;
-      element = self.viewForRing.getValue(ring);
+      element = self._viewForRing.getValue(ring);
       return $(element).fadeOut(200, function() {
         return $(element).remove();
       });
