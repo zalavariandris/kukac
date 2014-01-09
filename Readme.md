@@ -7,10 +7,10 @@ coffee -o build/ -cw *.coffee
 
 To-do
 =====
-+ hosszan induljon X
+x hosszan induljon
 + gyorsuljon a kukac ha nyomom a gombot
-+ idővel gyorsuljon a játék
-+ controller
+x idővel gyorsuljon a játék
+x controller
     tutorial: http://www.html5rocks.com/en/tutorials/doodles/gamepad/
     tester: http://www.html5rocks.com/en/tutorials/doodles/gamepad/gamepad-tester/tester.html
 
