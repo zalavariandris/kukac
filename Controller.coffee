@@ -130,7 +130,7 @@ class @Controller extends Observable
         kukac.set "direction",  new Vector(1, 0)
         kukac.set "position", new Vector(90, 50)
         self.set 'kukac', kukac
-        self.timestep = 300
+        self.timestep = 360
 
     killKukac: ->
         self = this
@@ -138,6 +138,7 @@ class @Controller extends Observable
         self.reset()
 
     gameOver: ->
+        @_round = 0
         @killKukac()
         @pause()
         @showMessage "<h2>Game Over!</h2> <br> Press a button to restart!"
@@ -171,7 +172,7 @@ class @Controller extends Observable
         if @_round < 4 then @get('kukac').grow()
 
         #grow kukac regularly
-        if Math.random()<0.16 then self.get('kukac').grow()
+        if Math.random()<0.1 then self.get('kukac').grow()
 
         ### move kukac ###
         kukac = @get 'kukac'
@@ -183,15 +184,16 @@ class @Controller extends Observable
         for apple in self.get 'apples'
             do (apple)->
                 dst = apple.get('position').dist self.get('kukac').get('position')
-                if dst < apple.get('size')/2+self.get('kukac').get('width')/2
+                if dst*1.1 < apple.get('size')/2+self.get('kukac').get('width')/2
                     #shrink kukac
                     self.get('kukac').shrink()
+
                     #remove the apple
                     self.removeFrom 'apples', apple
                     #drop anotherone
                     self.dropAnApple()
                     #increase timestep
-                    self.timestep *= 0.95
+                    self.timestep *= 0.98
 
         ###   GAME OVER   ###
         #if kukac hits the wall

@@ -166,7 +166,7 @@
       kukac.set("direction", new Vector(1, 0));
       kukac.set("position", new Vector(90, 50));
       self.set('kukac', kukac);
-      return self.timestep = 300;
+      return self.timestep = 360;
     };
 
     Controller.prototype.killKukac = function() {
@@ -177,6 +177,7 @@
     };
 
     Controller.prototype.gameOver = function() {
+      this._round = 0;
       this.killKukac();
       this.pause();
       return this.showMessage("<h2>Game Over!</h2> <br> Press a button to restart!");
@@ -203,7 +204,7 @@
       if (this._round < 4) {
         this.get('kukac').grow();
       }
-      if (Math.random() < 0.16) {
+      if (Math.random() < 0.1) {
         self.get('kukac').grow();
       }
       /* move kukac*/
@@ -218,11 +219,11 @@
       _fn = function(apple) {
         var dst;
         dst = apple.get('position').dist(self.get('kukac').get('position'));
-        if (dst < apple.get('size') / 2 + self.get('kukac').get('width') / 2) {
+        if (dst * 1.1 < apple.get('size') / 2 + self.get('kukac').get('width') / 2) {
           self.get('kukac').shrink();
           self.removeFrom('apples', apple);
           self.dropAnApple();
-          return self.timestep *= 0.95;
+          return self.timestep *= 0.98;
         }
       };
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
