@@ -1,54 +1,21 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <style>
-            html{
-                background: black;
-            }
-            .warmring{
-                box-sizing: border-box;
-                transition: left 0.25s, top 0.25s;
-                background: white;
-                border-radius: 1000px;
-                /*
-                border: 4px solid red;
-                box-shadow: 0 4px 10px hsla(100, 100%, 50%,0.8);
-                */
-            }
-            .apple{
-                width: 30px;
-                height: 30px;
-                background: red;
-                border-radius: 100%;
-
-                -webkit-transition: left 0.25s, top 0.25s;
-            }
-            #popup{
-                background: black;
-                color: white;
-                font-family: monospace;
-                text-align: center;
-                border: white dashed 1px;
-                box-sizing: border-box;
-                padding: 30px;
-                position: absolute;
-                width: 200px;
-                left: 50%;
-                margin-left: -100px;
-                top: 40%;
-                box-shadow: 1px 2px black,
-                            2px 3px white;
-            }
-        </style>
+        <link rel="stylesheet" href="style.css"/>
         <link rel="stylesheet" href="libs/jquery-ui.css" />
     </head>
     <body>
         
-        <div id="kukacdiv" style="width: 400px; height: 600px; border: 1px dashed white; overflow: visible;">
-             <div id="popup">popup message</div>  
+        
+
+        <div id="kukacdiv">
+            <div id="tools">
+                <input type="range" name="gridstep" min=1 max=30 tabindex=-1>
+                <input type="range" name="initialTimestep" min=50 max=500 tabindex=-1>
+            </div>
+            <div id="popup">popup message</div>  
         </div>
        
-        
         <!-- jquery -->
         <script src="libs/jquery-2.0.3.js"></script>
         <script src="libs/jquery-ui.js"></script>
@@ -58,13 +25,13 @@
         <script src="build/PS3toKeyboard.js"></script>
 
         <!-- core objects -->
-        <script src="build/Observable.js"></script>
-        <script src="build/Hash.js"></script>
+        <script src="build/MVC/Observable.js"></script>
+        <script src="build/MVC/Hash.js"></script>
+        <script src="build/MVC/Controller.js"></script>
 
         <!-- APP -->        
         <!-- controllers -->
-        <script src="build/Controller.js"></script>
-
+        <script src="build/GameController.js"></script>
         <!-- models -->
         <script src="build/Vector.js"></script>
         <script src="build/Kukac.js"></script>

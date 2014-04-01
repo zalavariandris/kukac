@@ -1,5 +1,5 @@
 global = @
 class @Apple extends Observable
+    @property "position"
     init: ->
-        @set 'position', new Vector(100,100)
-        @set 'size', 20
+        @position = new Vector(100,100)

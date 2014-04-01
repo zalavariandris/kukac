@@ -9,6 +9,12 @@
   this.Kukac = (function(_super) {
     __extends(Kukac, _super);
 
+    Kukac.property("rings");
+
+    Kukac.property("position");
+
+    Kukac.property("direction");
+
     function Kukac() {
       Kukac.__super__.constructor.call(this);
     }
@@ -16,28 +22,26 @@
     Kukac.prototype.init = function() {
       var head, self;
       self = this;
-      self.set('width', 20);
       self.set('rings', []);
       head = new Ring;
-      head.set('radius', self.get('width') / 2 * 1.0);
       self.addTo('rings', head);
       self.addObserver('position', function(key, change) {
         return self.moveRings();
       });
-      return self.set("position", new Vector);
+      return self.position = new Vector;
     };
 
     Kukac.prototype.moveRings = function() {
       var head, i, self, _i, _ref;
       self = this;
-      if (self.get('rings').length > 1) {
-        for (i = _i = _ref = self.get('rings').length - 1; _i >= 1; i = _i += -1) {
-          self.get('rings')[i].set('position', self.get('rings')[i - 1].get('position').clone());
+      if (self.rings.length > 1) {
+        for (i = _i = _ref = self.rings.length - 1; _i >= 1; i = _i += -1) {
+          self.rings[i].set('position', self.rings[i - 1].position.clone());
         }
       }
-      head = self.get('rings')[0];
+      head = self.rings[0];
       if (head) {
-        return head.set('position', self.get('position').clone());
+        return head.position = self.position.clone();
       }
     };
 
@@ -45,15 +49,14 @@
       var newRing, self;
       self = this;
       newRing = new Ring;
-      newRing.set('radius', self.get('width') / 2);
-      newRing.set('position', self.get('rings')[self.get('rings').length - 1].get('position').clone());
+      newRing.position = self.rings[self.rings.length - 1].position.clone();
       return self.addTo('rings', newRing);
     };
 
     Kukac.prototype.shrink = function() {
       var last, self;
       self = this;
-      last = _.last(self.get('rings'));
+      last = _.last(self.rings);
       return self.removeFrom('rings', last);
     };
 
@@ -69,20 +72,12 @@
       return _ref;
     }
 
+    Ring.property("position");
+
     Ring.prototype.init = function() {
       var self;
       self = this;
-      self.set('radius', 1);
-      return self.set('position', new Vector);
-    };
-
-    Ring.prototype.draw = function(ctx) {
-      var pos, self;
-      self = this;
-      ctx.beginPath();
-      pos = self.get('position');
-      ctx.arc(pos.x, pos.y, self.get('radius', 0, 2 * Math.PI));
-      return ctx.fill();
+      return self.position = new Vector;
     };
 
     return Ring;

@@ -22,7 +22,7 @@
     }
 
     Bounds.prototype.contains = function(point) {
-      return point.x > this.tl.x && point.x < this.br.x && point.y < this.br.y && point.y > this.tl.y;
+      return point.x >= this.tl.x && point.x <= this.br.x && point.y <= this.br.y && point.y >= this.tl.y;
     };
 
     Bounds.prototype.getWidth = function() {

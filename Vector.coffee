@@ -13,10 +13,10 @@ class @Bounds
         self.br = br
 
     contains: (point)->
-        point.x > this.tl.x and
-        point.x < this.br.x and
-        point.y < this.br.y and
-        point.y > this.tl.y
+        point.x >= this.tl.x and
+        point.x <= this.br.x and
+        point.y <= this.br.y and
+        point.y >= this.tl.y
 
     getWidth: ->
         width = @br.x - @tl.x
@@ -26,7 +26,6 @@ class @Bounds
         
 
 class @Vector
-    
     ### Adds two vectors and returns the product. ###
     @add: (v1, v2) ->
         new Vector v1.x + v2.x, v1.y + v2.y

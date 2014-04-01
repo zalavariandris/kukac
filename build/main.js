@@ -2,10 +2,8 @@
 (function() {
   var global;
 
-  this.app = new Controller;
+  this.app = new GameController;
 
   global = this;
-
-  $("#kukacdiv").draggable();
 
 }).call(this);

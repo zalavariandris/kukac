@@ -1,5 +1,3 @@
 
-@app =  new Controller
+@app =  new GameController
 global = @
-
-$("#kukacdiv").draggable()

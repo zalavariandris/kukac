@@ -1,4 +1,48 @@
+body{
+    background: black;
+}
+
+#kukacdiv:hover{
+    outline: 1px dashed white;
+}
+
+#kukacdiv:not(:hover)>#tools{
+    opacity: 0.0;
+}
+
 .warmring{
-    backgroud: red;
-    border-radius: 100px;
+    box-sizing: border-box;
+    transition: left 0.25s, top 0.25s;
+    background: white;
+    border-radius: 1000px;
+    /*
+    border: 4px solid red;
+    box-shadow: 0 4px 10px hsla(100, 100%, 50%,0.8);
+    */
+}
+
+.apple{
+    width: 30px;
+    height: 30px;
+    background: yellow;
+    border-radius: 100%;
+
+    -webkit-transition: left 0.25s, top 0.25s;
+}
+
+#popup{
+    background: hsla(0,0%,0%,0.5);
+    color: white;
+    font-family: monospace;
+    text-align: center;
+    border: white dashed 1px;
+    box-sizing: border-box;
+    padding: 30px;
+    position: absolute;
+    width: 200px;
+    left: 50%;
+    margin-left: -100px;
+    top: 40%;
+    box-shadow: 1px 2px black,
+                2px 3px white;
 }

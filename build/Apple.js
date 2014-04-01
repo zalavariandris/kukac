@@ -14,9 +14,10 @@
       return _ref;
     }
 
+    Apple.property("position");
+
     Apple.prototype.init = function() {
-      this.set('position', new Vector(100, 100));
-      return this.set('size', 20);
+      return this.position = new Vector(100, 100);
     };
 
     return Apple;

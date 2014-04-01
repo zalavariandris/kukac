@@ -3,7 +3,7 @@ Readme
 ======
 
 * to watch and compile
-coffee -o build/ -cw *.coffee
+coffee -output build/ --watch .
 
 To-do
 =====
